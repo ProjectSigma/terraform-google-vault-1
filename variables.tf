@@ -290,8 +290,7 @@ variable "ssh_allowed_cidrs" {
   default = ["0.0.0.0/0"]
 
   description = <<EOF
-List of CIDR blocks to allow access to SSH into nodes. To disable, set to the
-empty list [].
+List of CIDR blocks to allow access to SSH into nodes.
 EOF
 
 }
