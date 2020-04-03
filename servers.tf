@@ -20,9 +20,9 @@
 
 # Template for creating Vault nodes
 locals {
-  use_internal_lb = var.load_balancing_scheme == "INTERNAL"
-  use_external_lb = var.load_balancing_scheme == "EXTERNAL"
-
+  lb_scheme       = upper(var.load_balancing_scheme)
+  use_internal_lb = local.lb_scheme == "INTERNAL"
+  use_external_lb = local.lb_scheme == "EXTERNAL"
 }
 
 resource "google_compute_instance_template" "vault" {
@@ -96,6 +96,7 @@ resource "google_compute_region_backend_service" "vault_internal" {
   name          = "vault-backend-service"
   region        = var.region
   health_checks = ["${google_compute_health_check.vault_internal[0].self_link}"]
+
   backend {
     group = google_compute_region_instance_group_manager.vault.instance_group
   }
@@ -110,7 +111,7 @@ resource "google_compute_forwarding_rule" "vault_internal" {
   region                = var.region
   ip_protocol           = "TCP"
   ip_address            = google_compute_address.vault_ilb[0].address
-  load_balancing_scheme = var.load_balancing_scheme
+  load_balancing_scheme = local.lb_scheme
   network_tier          = "PREMIUM"
   allow_global_access   = true
   subnetwork            = local.subnet
@@ -163,7 +164,7 @@ resource "google_compute_forwarding_rule" "external" {
   region                = var.region
   ip_address            = google_compute_address.vault[0].address
   ip_protocol           = "TCP"
-  load_balancing_scheme = var.load_balancing_scheme
+  load_balancing_scheme = local.lb_scheme
   network_tier          = "PREMIUM"
 
   target     = google_compute_target_pool.vault[0].self_link
